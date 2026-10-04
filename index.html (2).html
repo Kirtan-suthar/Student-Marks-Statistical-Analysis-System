@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Marks & Statistical Analysis System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            margin: 20px;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            max-width: 1000px;
+            margin: auto;
+            flex-wrap: wrap;
+        }
+        .card {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            background-color: #007bff;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .stat-item {
+            background: #eef5ff;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Student Marks & Statistical Analysis System</h1>
+
+    <div class="container">
+        <!-- Input Form Section -->
+        <div class="card">
+            <h2>Enter Student Marks</h2>
+            <form id="marksForm">
+                <div class="form-group">
+                    <label for="roll_no">Roll Number:</label>
+                    <input type="text" id="roll_no" required placeholder="e.g. 101">
+                </div>
+
+                <div class="form-group">
+                    <label for="student_name">Student Name:</label>
+                    <input type="text" id="student_name" required placeholder="e.g. Rahul Sharma">
+                </div>
+
+                <div class="form-group">
+                    <label for="sub_sp">C Programming (SP) Marks:</label>
+                    <input type="number" id="sub_sp" min="0" max="100" required placeholder="0-100">
+                </div>
+
+                <div class="form-group">
+                    <label for="sub_dbms">DBMS Marks:</label>
+                    <input type="number" id="sub_dbms" min="0" max="100" required placeholder="0-100">
+                </div>
+
+                <div class="form-group">
+                    <label for="sub_html">HTML Marks:</label>
+                    <input type="number" id="sub_html" min="0" max="100" required placeholder="0-100">
+                </div>
+
+                <button type="submit">Add Student & Calculate Stats</button>
+            </form>
+        </div>
+
+        <!-- Statistical Output Dashboard Section -->
+        <div class="card">
+            <h2>Class Statistics Output</h2>
+            <div class="stat-item"><strong>Total Students:</strong> <span id="statTotalStudents">0</span></div>
+            <div class="stat-item"><strong>Class Mean Score (Average):</strong> <span id="statMean">0.00</span></div>
+            <div class="stat-item"><strong>Score Variance ($\sigma^2$):</strong> <span id="statVariance">0.00</span></div>
+            <div class="stat-item"><strong>Standard Deviation ($\sigma$):</strong> <span id="statStdDev">0.00</span></div>
+            <div class="stat-item"><strong>Highest Mean Marks:</strong> <span id="statHighest">0.00</span></div>
+            <div class="stat-item"><strong>Lowest Mean Marks:</strong> <span id="statLowest">0.00</span></div>
+        </div>
+    </div>
+
+    <!-- Data Display Table Section -->
+    <div class="card" style="max-width: 1000px; margin: 20px auto;">
+        <h2>All Student Records</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Roll No</th>
+                    <th>Name</th>
+                    <th>SP</th>
+                    <th>DBMS</th>
+                    <th>HTML</th>
+                    <th>Total</th>
+                    <th>Mean Score</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+                <!-- Data Javascript se add hoga -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Store student records
+        let students = [];
+
+        // Form submit listener
+        document.getElementById('marksForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get form inputs
+            const rollNo = document.getElementById('roll_no').value.trim();
+            const name = document.getElementById('student_name').value.trim();
+            const sp = parseFloat(document.getElementById('sub_sp').value);
+            const dbms = parseFloat(document.getElementById('sub_dbms').value);
+            const html = parseFloat(document.getElementById('sub_html').value);
+
+            // Calculate student total and mean score
+            const total = sp + dbms + html;
+            const meanScore = total / 3;
+
+            // Push object to array
+            students.push({
+                rollNo: rollNo,
+                name: name,
+                sp: sp,
+                dbms: dbms,
+                html: html,
+                total: total,
+                meanScore: meanScore
+            });
+
+            // Update UI & Calculations
+            updateTable();
+            calculateStatistics();
+
+            // Reset form fields
+            document.getElementById('marksForm').reset();
+        });
+
+        // Function to update HTML table
+        function updateTable() {
+            const tbody = document.getElementById('studentTableBody');
+            tbody.innerHTML = '';
+
+            students.forEach(student => {
+                const row = `<tr>
+                    <td>${student.rollNo}</td>
+                    <td>${student.name}</td>
+                    <td>${student.sp}</td>
+                    <td>${student.dbms}</td>
+                    <td>${student.html}</td>
+                    <td>${student.total}</td>
+                    <td><strong>${student.meanScore.toFixed(2)}</strong></td>
+                </tr>`;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Function to calculate statistical values
+        function calculateStatistics() {
+            const totalStudents = students.length;
+
+            if (totalStudents === 0) return;
+
+            // 1. Total Students
+            document.getElementById('statTotalStudents').innerText = totalStudents;
+
+            // Extract all mean scores into an array
+            const scores = students.map(s => s.meanScore);
+
+            // 2. Class Mean (Average Score)
+            const classMean = scores.reduce((acc, curr) => acc + curr, 0) / totalStudents;
+            document.getElementById('statMean').innerText = classMean.toFixed(2);
+
+            // 3. Variance
+            const variance = scores.reduce((acc, curr) => acc + Math.pow(curr - classMean, 2), 0) / totalStudents;
+            document.getElementById('statVariance').innerText = variance.toFixed(2);
+
+            // 4. Standard Deviation
+            const stdDev = Math.sqrt(variance);
+            document.getElementById('statStdDev').innerText = stdDev.toFixed(2);
+
+            // 5. Highest Score
+            const highest = Math.max(...scores);
+            document.getElementById('statHighest').innerText = highest.toFixed(2);
+
+            // 6. Lowest Score
+            const lowest = Math.min(...scores);
+            document.getElementById('statLowest').innerText = lowest.toFixed(2);
+        }
+    </script>
+</body>
+</html>
